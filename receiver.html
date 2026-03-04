@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Photolab Receiver</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+</head>
+<body>
+  <div id="stage">
+    <div id="image" role="img" aria-label="photo"></div>
+    <div id="overlay">
+      <div id="caption"></div>
+      <div id="controls">◀ ▶</div>
+    </div>
+  </div>
+
+<script>
+const context = cast.framework.CastReceiverContext.getInstance();
+const NAMESPACE = 'urn:x-cast:com.example.photoreceiver';
+let list = [], idx = 0, cache = {};
+
+function show() {
+  const el = document.getElementById('image');
+  const cap = document.getElementById('caption');
+  if (!list.length) { el.style.backgroundImage=''; cap.textContent=''; return; }
+  el.style.opacity = 0;
+  setTimeout(()=>{ el.style.backgroundImage = `url("${list[idx]}")`; el.style.opacity = 1; }, 120);
+  cap.textContent = `${idx+1}/${list.length}`;
+  preload((idx+1)%list.length);
+}
+function preload(i){ const url = list[i]; if(!url || cache[url]) return; const img=new Image(); img.src=url; img.onload=()=>cache[url]=true; }
+function next(){ if(!list.length) return; idx=(idx+1)%list.length; show(); }
+function prev(){ if(!list.length) return; idx=(idx-1+list.length)%list.length; show(); }
+
+context.addCustomMessageListener(NAMESPACE, (e)=>{
+  const d = e.data;
+  if (d.type==='setList'){ list = d.list||[]; idx=0; show(); }
+  if (d.type==='setImage'){ list=[d.url]; idx=0; show(); }
+  if (d.type==='next') next();
+  if (d.type==='prev') prev();
+  if (d.theme) applyTheme(d.theme);
+});
+
+window.addEventListener('keydown', (ev)=>{
+  if (ev.key==='ArrowRight' || ev.key==='MediaTrackNext') next();
+  if (ev.key==='ArrowLeft' || ev.key==='MediaTrackPrevious') prev();
+});
+
+function applyTheme(t){
+  if(t.bg) document.documentElement.style.setProperty('--bg', t.bg);
+  if(t.accent) document.documentElement.style.setProperty('--accent', t.accent);
+}
+
+context.start();
+</script>
+</body>
+</html>

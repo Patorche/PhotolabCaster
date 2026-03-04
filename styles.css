@@ -1,0 +1,7 @@
+:root{ --bg:#000; --accent:#fff; --overlay-bg:rgba(0,0,0,0.45) }
+html,body{height:100%;margin:0;background:var(--bg);font-family:Inter,Arial,Helvetica,sans-serif}
+#stage{position:relative;height:100%;width:100%;overflow:hidden}
+#image{position:absolute;inset:0;background-position:center;background-size:contain;background-repeat:no-repeat;transition:opacity .25s ease;opacity:1}
+#overlay{position:absolute;left:0;right:0;bottom:0;padding:16px;display:flex;justify-content:space-between;align-items:center}
+#caption{color:var(--accent);background:var(--overlay-bg);padding:6px 10px;border-radius:6px}
+#controls{color:var(--accent);opacity:.95}
