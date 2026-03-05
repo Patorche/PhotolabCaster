@@ -167,7 +167,9 @@
         // 5) Configuration du receiver
         const options = new cast.framework.CastReceiverOptions();
         options.disableIdleTimeout = true; // pour éviter que le receiver se coupe trop vite
-
+		options.customNamespaces = {
+			NAMESPACE: cast.framework.system.MessageType.JSON
+		};
         context.start(options);
 
         log('PhotolabCaster receiver démarré.');
