@@ -41,6 +41,8 @@
 	
         const LOG = document.getElementById('log');
         const CONTENT = document.getElementById('content');
+		        // 3) Namespace custom Photolab
+        const NAMESPACE = 'urn:x-cast:com.photolab';
 
         function log(...args) {
             const line = args.map(a => typeof a === 'string' ? a : JSON.stringify(a)).join(' ');
@@ -51,22 +53,15 @@
 
         // 1) Création du contexte receiver
         const context = cast.framework.CastReceiverContext.getInstance();
-
-        // 2) Gestion du MediaChannel (pour tes images via Media)
-        const playerManager = context.getPlayerManager();
-
-        playerManager.addEventListener(
-            cast.framework.events.EventType.MEDIA_STATUS,
-            (event) => {
-                log('MEDIA_STATUS', event);
-                // Ici tu pourras envoyer des messages à Photolab si besoin
-            }
-        );
-
-        // 3) Namespace custom Photolab
-        const NAMESPACE = 'urn:x-cast:com.photolab';
-
-        context.addCustomMessageListener(NAMESPACE, (event) => {
+		
+		// Configuration du receiver
+        const options = new cast.framework.CastReceiverOptions();
+        options.disableIdleTimeout = true; // pour éviter que le receiver se coupe trop vite
+		options.customNamespaces = {
+			[NAMESPACE]: cast.framework.system.MessageType.JSON
+		};
+        context.start(options);
+		context.addCustomMessageListener(NAMESPACE, (event) => {
             log('Message reçu de Photolab:', event);
 
             try {
@@ -79,6 +74,21 @@
                 log('Erreur parsing message:', e);
             }
         });
+
+        // 2) Gestion du MediaChannel (pour tes images via Media)
+        const playerManager = context.getPlayerManager();
+
+        playerManager.addEventListener(
+            cast.framework.events.EventType.MEDIA_STATUS,
+            (event) => {
+                log('MEDIA_STATUS', event);
+                // Ici tu pourras envoyer des messages à Photolab si besoin
+            }
+        );
+
+
+
+        
 
         function sendToPhotolab(senderId, message) {
             log('Envoi vers Photolab:', message);
@@ -165,13 +175,7 @@
             // Tu peux aussi changer couleurs de texte, accents, etc.
         }
 
-        // 5) Configuration du receiver
-        const options = new cast.framework.CastReceiverOptions();
-        options.disableIdleTimeout = true; // pour éviter que le receiver se coupe trop vite
-		options.customNamespaces = {
-			[NAMESPACE]: cast.framework.system.MessageType.JSON
-		};
-        context.start(options);
+        
 
         log('PhotolabCaster receiver démarré.');
     </script>
